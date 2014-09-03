@@ -1,0 +1,25 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.8
+
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	compile files("${System.properties['java.home']}/../lib/tools.jar")
+	compile 'org.projectlombok:lombok:1.14.4'
+	compile 'org.drools:drools-core:5.6.0.Final'
+	compile 'org.drools:drools-compiler:5.6.0.Final'
+	// compile 'org.apache.commons:commons-lang3:3.3.2'
+	// compile 'org.apache.commons:commons-collections4:4.0'
+	testCompile 'junit:junit:4.11'
+}

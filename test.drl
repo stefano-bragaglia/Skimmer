@@ -1,0 +1,12 @@
+
+declare Done
+end
+
+rule "Print something"
+when
+	not Done()
+	$o: Object()
+then
+	System.out.println($o);
+	insert(new Done());
+end

@@ -1,0 +1,7 @@
+package bragaglia.skimmer.core
+
+rule "Ready"
+    when
+    then
+        System.err.println("Skimmer is ready.");
+end

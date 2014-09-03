@@ -82,19 +82,6 @@ public class XMLSource {
 		return result;
 	}
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		Engine engine = new Engine();
-		XMLSource skimmer = new XMLSource("iFF708.xml");
-		skimmer.ignore("annotation");
-		skimmer.ignore("notes");
-		skimmer.ignore("kineticLaw");
-		skimmer.execute(engine);
-		System.out.println("Done.");
-	}
-
 	private File file;
 
 	private Set<String> ignores;

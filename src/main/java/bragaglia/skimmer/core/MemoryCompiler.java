@@ -25,6 +25,8 @@ public class MemoryCompiler {
 
 	private static JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
+	private static JavaFileManager manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
+
 	public static String toClassName(String name) {
 		if (null == name || (name = name.trim()).isEmpty())
 			throw new IllegalArgumentException("Illegal 'name' argument in MemoryCompiler.toClassName(String): " + name);
@@ -48,6 +50,12 @@ public class MemoryCompiler {
 		this.methods = new HashMap<>();
 		this.options = new ArrayList<String>(Arrays.asList("-classpath", System.getProperty("java.class.path")));
 		assert invariant() : "Illegal state in MemoryCompiler()";
+	}
+
+	private static ClassLoader classLoader = manager.getClassLoader(null);
+
+	public static ClassLoader getClassLoader() {
+		return classLoader;
 	}
 
 	public Class<?> compile(String name, Map<String, Object> fields) {
@@ -75,12 +83,11 @@ public class MemoryCompiler {
 			}
 			content += "}\n";
 
-			JavaFileManager manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
 			List<JavaFileObject> files = new ArrayList<JavaFileObject>();
 			files.add(new MemoryJavaFileObject(name, content));
 			compiler.getTask(null, manager, null, options, null, files).call();
 			try {
-				result = manager.getClassLoader(null).loadClass(name);
+				result = classLoader.loadClass(name);
 				classes.put(name, result);
 			} catch (ClassNotFoundException e) {
 				result = null;

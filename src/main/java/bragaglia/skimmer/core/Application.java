@@ -76,14 +76,14 @@ public class Application {
 					}
 			}
 		XMLSource source;
-		Engine engine = new Engine();
+		Engine engine = new Engine(MemoryCompiler.getClassLoader());
 		for (String xml : xmls) {
 			source = new XMLSource(xml);
 			source.ignore(ignores);
 			source.execute(engine);
 		}
 		if (!rules.isEmpty())
-			engine.inject(rules);
+			engine.inject(MemoryCompiler.getClassLoader(), rules);
 		System.err.println("Done.");
 	}
 

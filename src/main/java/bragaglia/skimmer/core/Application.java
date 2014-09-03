@@ -26,18 +26,18 @@ public class Application {
 	public static void main(String[] args) {
 		System.err.println("Skimmer 1.0");
 		System.err.println("");
-		System.out.println();
-		System.out.println(String.format("Usage:     java -jar skimmer.jar  [options]  [files]"));
-		System.out.println();
-		System.out.println("Options:");
-		System.out.println();
-		System.out.println("  --ignore,-i <text>  : Ignore entities with given text");
-		System.out.println("  --xml,-x <file>     : Load given XML <file>");
-		System.out.println();
-		System.out.println("Files:");
-		System.out.println();
-		System.out.println("  any DRL file without package definition");
-		System.out.println();
+		System.err.println();
+		System.err.println(String.format("Usage:     java -jar skimmer.jar  [options]  [files]"));
+		System.err.println();
+		System.err.println("Options:");
+		System.err.println();
+		System.err.println("  --ignore,-i <text>  : Ignore entities with given text");
+		System.err.println("  --xml,-x <file>     : Load given XML <file>");
+		System.err.println();
+		System.err.println("Files:");
+		System.err.println();
+		System.err.println("  any DRL file without package definition");
+		System.err.println();
 	
 		Path path;
 		String name;
@@ -59,7 +59,7 @@ public class Application {
 					if (Files.exists(path, options) && !Files.isDirectory(path, options))
 						xmls.add(path.toString());
 					else
-						System.out.println("The file '" + name + "' is not a valid XML source...");
+						System.err.println("The file '" + name + "' is not a valid XML source...");
 					break;
 				default:
 					path = Paths.get(args[i]);
@@ -70,9 +70,9 @@ public class Application {
 						if (Files.exists(path, options) && !Files.isDirectory(path, options))
 							rules.add(new String(Files.readAllBytes(path)));
 						else
-							System.out.println("The file '" + name + "' is not a valid RULE source...");
+							System.err.println("The file '" + name + "' is not a valid RULE source...");
 					} catch (IOException e) {
-						System.out.println("The file '" + name + "' is not a valid RULE source...");
+						System.err.println("The file '" + name + "' is not a valid RULE source...");
 					}
 			}
 		XMLSource source;

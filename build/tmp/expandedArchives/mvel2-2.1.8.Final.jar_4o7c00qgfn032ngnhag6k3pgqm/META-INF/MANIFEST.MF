@@ -1,0 +1,86 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: 1.6.0_27 (Sun Microsystems Inc.)
+Built-By: mario
+Build-Jdk: 1.6.0_27
+Package: org.mvel2
+Main-Class: org.mvel2.sh.Main
+Export-Package: org.mvel2;uses:="org.mvel2.util,org.mvel2.conversion,o
+ rg.mvel2.integration.impl,org.mvel2.optimizers.impl.refl.nodes,org.mv
+ el2.integration,org.mvel2.compiler,org.mvel2.ast,org.mvel2.optimizers
+ ,org.mvel2.debug";version="2.1.8.Final",org.mvel2.asm;version="2.1.8.
+ Final",org.mvel2.asm.signature;version="2.1.8.Final",org.mvel2.asm.ut
+ il;uses:="org.mvel2.asm,org.mvel2.asm.signature";version="2.1.8.Final
+ ",org.mvel2.ast;uses:="org.mvel2.optimizers,org.mvel2.integration,org
+ .mvel2,org.mvel2.debug,org.mvel2.compiler,org.mvel2.util,org.mvel2.ma
+ th,org.mvel2.integration.impl";version="2.1.8.Final",org.mvel2.compil
+ er;uses:="org.mvel2.integration,org.mvel2,org.mvel2.ast,org.mvel2.uti
+ l,org.mvel2.optimizers,org.mvel2.integration.impl,org.mvel2.optimizer
+ s.impl.refl.nodes";version="2.1.8.Final",org.mvel2.conversion;uses:="
+ org.mvel2,org.mvel2.compiler";version="2.1.8.Final",org.mvel2.debug;u
+ ses:="org.mvel2.integration,org.mvel2.compiler,org.mvel2.util,org.mve
+ l2.ast";version="2.1.8.Final",org.mvel2.integration;uses:="org.mvel2.
+ ast";version="2.1.8.Final",org.mvel2.integration.impl;uses:="org.mvel
+ 2.integration,org.mvel2,org.mvel2.ast,org.mvel2.util";version="2.1.8.
+ Final",org.mvel2.math;uses:="org.mvel2,org.mvel2.debug,org.mvel2.util
+ ";version="2.1.8.Final",org.mvel2.optimizers;uses:="org.mvel2,org.mve
+ l2.util,org.mvel2.compiler,org.mvel2.integration,org.mvel2.optimizers
+ .dynamic,org.mvel2.optimizers.impl.asm,org.mvel2.optimizers.impl.refl
+ ";version="2.1.8.Final",org.mvel2.optimizers.dynamic;uses:="org.mvel2
+ .compiler,org.mvel2.util,org.mvel2.integration,org.mvel2.optimizers,o
+ rg.mvel2,org.mvel2.optimizers.impl.asm";version="2.1.8.Final",org.mve
+ l2.optimizers.impl.asm;uses:="org.mvel2.integration,org.mvel2.optimiz
+ ers.impl.refl.nodes,org.mvel2.util,org.mvel2.asm,org.mvel2.optimizers
+ ,org.mvel2,org.mvel2.compiler,org.mvel2.ast";version="2.1.8.Final",or
+ g.mvel2.optimizers.impl.refl;uses:="org.mvel2.optimizers.impl.refl.no
+ des,org.mvel2.integration,org.mvel2.util,org.mvel2.optimizers.impl.re
+ fl.collection,org.mvel2.optimizers,org.mvel2,org.mvel2.compiler,org.m
+ vel2.ast";version="2.1.8.Final",org.mvel2.optimizers.impl.refl.collec
+ tion;uses:="org.mvel2.integration,org.mvel2.compiler,org.mvel2,org.mv
+ el2.util";version="2.1.8.Final",org.mvel2.optimizers.impl.refl.nodes;
+ uses:="org.mvel2.integration,org.mvel2.compiler,org.mvel2,org.mvel2.u
+ til,org.mvel2.ast,org.mvel2.optimizers";version="2.1.8.Final",org.mve
+ l2.sh;uses:="org.mvel2,org.mvel2.templates,org.mvel2.integration.impl
+ ,org.mvel2.integration,org.mvel2.util,org.mvel2.sh.command.basic,org.
+ mvel2.sh.command.file";version="2.1.8.Final",org.mvel2.sh.command.bas
+ ic;uses:="org.mvel2.sh,org.mvel2.sh.text,org.mvel2.util,org.mvel2";ve
+ rsion="2.1.8.Final",org.mvel2.sh.command.file;uses:="org.mvel2.sh";ve
+ rsion="2.1.8.Final",org.mvel2.sh.text;version="2.1.8.Final",org.mvel2
+ .templates;uses:="org.mvel2.templates.res,org.mvel2.templates.util,or
+ g.mvel2,org.mvel2.util,org.mvel2.integration.impl,org.mvel2.integrati
+ on,org.mvel2.templates.util.io";version="2.1.8.Final",org.mvel2.templ
+ ates.res;uses:="org.mvel2.templates,org.mvel2.integration,org.mvel2.t
+ emplates.util,org.mvel2,org.mvel2.integration.impl,org.mvel2.util";ve
+ rsion="2.1.8.Final",org.mvel2.templates.util;uses:="org.mvel2.templat
+ es.res,org.mvel2.templates,org.mvel2.util";version="2.1.8.Final",org.
+ mvel2.templates.util.io;uses:="org.mvel2.templates.util,org.mvel2.uti
+ l";version="2.1.8.Final",org.mvel2.util;uses:="org.mvel2,org.mvel2.as
+ t,org.mvel2.integration,org.mvel2.compiler,org.mvel2.integration.impl
+ ,org.mvel2.math,sun.misc";version="2.1.8.Final"
+Tool: Bnd-0.0.357
+Bundle-Name: mvel2
+Bundle-Version: 2.1.8.Final
+Bnd-LastModified: 1385053199767
+Bundle-ManifestVersion: 2
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-Description: MVEL is a powerful expression language for Java-ba
+ sed applications.        It provides a plethora of features and is su
+ ited for everything        from the smallest property binding and ext
+ raction, to full blown scripts.
+Import-Package: org.mvel2;version="2.1",org.mvel2.asm;version="2.1",or
+ g.mvel2.asm.signature;version="2.1",org.mvel2.asm.util;version="2.1",
+ org.mvel2.ast;version="2.1",org.mvel2.compiler;version="2.1",org.mvel
+ 2.conversion;version="2.1",org.mvel2.debug;version="2.1",org.mvel2.in
+ tegration;version="2.1",org.mvel2.integration.impl;version="2.1",org.
+ mvel2.math;version="2.1",org.mvel2.optimizers;version="2.1",org.mvel2
+ .optimizers.dynamic;version="2.1",org.mvel2.optimizers.impl.asm;versi
+ on="2.1",org.mvel2.optimizers.impl.refl;version="2.1",org.mvel2.optim
+ izers.impl.refl.collection;version="2.1",org.mvel2.optimizers.impl.re
+ fl.nodes;version="2.1",org.mvel2.sh;version="2.1",org.mvel2.sh.comman
+ d.basic;version="2.1",org.mvel2.sh.command.file;version="2.1",org.mve
+ l2.sh.text;version="2.1",org.mvel2.templates;version="2.1",org.mvel2.
+ templates.res;version="2.1",org.mvel2.templates.util;version="2.1",or
+ g.mvel2.templates.util.io;version="2.1",org.mvel2.util;version="2.1",
+ sun.misc;resolution:=optional
+Bundle-SymbolicName: org.mvel2
+

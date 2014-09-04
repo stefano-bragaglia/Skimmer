@@ -24,28 +24,66 @@ public class Application {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		System.err.println("Skimmer 1.0");
-		System.err.println("");
-		System.err.println();
-		System.err.println(String.format("Usage:     java -jar skimmer.jar  [options]  [files]"));
-		System.err.println();
-		System.err.println("Options:");
-		System.err.println();
-		System.err.println("  --ignore,-i <text>  : Ignore entities with given text");
-		System.err.println("  --xml,-x <file>     : Load given XML <file>");
-		System.err.println();
-		System.err.println("Files:");
-		System.err.println();
-		System.err.println("  any DRL file without package definition");
-		System.err.println();
-	
+		Application application = new Application();
+		application.parse(args);
+		application.execute();
+	}
+
+	private boolean errors;
+	private boolean help;
+	private Set<String> ignores;
+	private Set<String> rules;
+	private boolean version;
+
+	private Set<String> xmls;
+
+	public Application() {
+		this.ignores = new HashSet<>();
+		this.rules = new LinkedHashSet<>();
+		this.xmls = new HashSet<>();
+		this.clear();
+	}
+
+	public void clear() {
+		this.errors = false;
+		this.ignores.clear();
+		this.help = false;
+		this.rules.clear();
+		this.version = false;
+		this.xmls.clear();
+	}
+
+	public void execute() {
+		if (!errors) {
+			if (help)
+				printHelp();
+			else if (version)
+				printVersion();
+			else {
+				XMLSource source;
+				Engine engine = new Engine(MemoryCompiler.getClassLoader());
+				for (String xml : xmls) {
+					source = new XMLSource(xml);
+					source.ignore(ignores);
+					source.execute(engine);
+				}
+				if (!rules.isEmpty())
+					engine.inject(MemoryCompiler.getClassLoader(), rules);
+				System.err.println("Done.");
+			}
+		}
+	}
+
+	public void parse(String[] args) {
+		printTitle();
 		Path path;
 		String name;
-		Set<String> ignores = new HashSet<>();
-		Set<String> xmls = new HashSet<>();
-		Set<String> rules = new LinkedHashSet<>();
 		for (int i = 0; i < args.length; i++)
 			switch (args[i]) {
+				case "-h":
+				case "--help":
+					help = true;
+					break;
 				case "-i":
 				case "--ignore":
 					ignores.add(args[++i]);
@@ -58,8 +96,14 @@ public class Application {
 						name = name.substring(name.lastIndexOf("/"));
 					if (Files.exists(path, options) && !Files.isDirectory(path, options))
 						xmls.add(path.toString());
-					else
+					else {
+						errors = true;
 						System.err.println("The file '" + name + "' is not a valid XML source...");
+					}
+					break;
+				case "-v":
+				case "--version":
+					version = true;
 					break;
 				default:
 					path = Paths.get(args[i]);
@@ -69,22 +113,43 @@ public class Application {
 					try {
 						if (Files.exists(path, options) && !Files.isDirectory(path, options))
 							rules.add(new String(Files.readAllBytes(path)));
-						else
+						else {
+							errors = true;
 							System.err.println("The file '" + name + "' is not a valid RULE source...");
+						}
 					} catch (IOException e) {
+						errors = true;
 						System.err.println("The file '" + name + "' is not a valid RULE source...");
 					}
 			}
-		XMLSource source;
-		Engine engine = new Engine(MemoryCompiler.getClassLoader());
-		for (String xml : xmls) {
-			source = new XMLSource(xml);
-			source.ignore(ignores);
-			source.execute(engine);
-		}
-		if (!rules.isEmpty())
-			engine.inject(MemoryCompiler.getClassLoader(), rules);
-		System.err.println("Done.");
+	}
+
+	private void printHelp() {
+		System.err.println("Usage:     java -jar skimmer.jar  [options]  [files]");
+		System.err.println();
+		System.err.println("Options:");
+		System.err.println();
+		System.err.println("  --help,-h           : Print this help and exit");
+		System.err.println("  --ignore,-i <name>  : Ignore element with given <name>");
+		System.err.println("  --version,-v        : Print version information and exit");
+		System.err.println("  --xml,-x <file>     : Load given XML <file>");
+		System.err.println();
+		System.err.println("Example:   java -jar skimmer.jar  -x iFF708.xml  -i annotation  -i notes  -i kineticLaw  script.drl");
+		System.err.println();
+	}
+
+	private void printTitle() {
+		System.err.println("Skimmer 1.0");
+		System.err.println();
+	}
+
+	private void printVersion() {
+		System.err.println("Copyright (c) Stefano Bragaglia");
+		System.err.println();
+		System.err.println("GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>");
+		System.err.println("'skimmer' is free software: you are free to change and redistribute it.");
+		System.err.println("There is NO WARRANTY, to the extent permitted by law.");
+		System.err.println();
 	}
 
 }

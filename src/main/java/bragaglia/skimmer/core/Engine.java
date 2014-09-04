@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.drools.KnowledgeBase;
+import org.drools.KnowledgeBaseConfiguration;
 import org.drools.KnowledgeBaseFactory;
 import org.drools.builder.KnowledgeBuilder;
 import org.drools.builder.KnowledgeBuilderConfiguration;
@@ -32,8 +33,8 @@ public class Engine {
 		if (null == loader)
 			throw new IllegalArgumentException("Illegal 'loader' argument in Engine(ClassLoader): " + loader);
 		this.imports = new HashSet<>();
-		KnowledgeBuilderConfiguration configuration = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, loader);
-		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(configuration);
+		KnowledgeBuilderConfiguration config1 = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, loader);
+		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(config1);
 		builder.add(ResourceFactory.newClassPathResource("Basic.drl"), ResourceType.DRL);
 		if (builder.hasErrors()) {
 			for (KnowledgeBuilderError error : builder.getErrors())
@@ -41,7 +42,8 @@ public class Engine {
 			System.err.println("Unable to start the XMLSource engine...");
 			System.exit(-1);
 		}
-		KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase();
+		KnowledgeBaseConfiguration config2 = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, loader);
+		KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(config2);
 		base.addKnowledgePackages(builder.getKnowledgePackages());
 		this.session = base.newStatefulKnowledgeSession();
 		this.session.fireAllRules();
@@ -53,8 +55,8 @@ public class Engine {
 			throw new IllegalArgumentException("Illegal 'loader' argument in Engine.inject(ClassLoader, Collection<String>): " + loader);
 		if (null == resources)
 			throw new IllegalArgumentException("Illegal 'resources' argument in Engine.inject(ClassLoader, Collection<String>): " + resources);
-		KnowledgeBuilderConfiguration configuration = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, loader);
-		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(configuration);
+		KnowledgeBuilderConfiguration config1 = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, loader);
+		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(config1);
 		builder.add(ResourceFactory.newByteArrayResource(String.join("\n", imports).getBytes()), ResourceType.DRL);
 		for (String resource : resources)
 			builder.add(ResourceFactory.newByteArrayResource(resource.getBytes()), ResourceType.DRL);
@@ -112,7 +114,8 @@ public class Engine {
 		KnowledgeBase base = session.getKnowledgeBase();
 		base.addKnowledgePackages(builder.getKnowledgePackages());
 
-		imports.add("import " + type);
+		if (type.contains("."))
+			imports.add("import " + type);
 		this.session.insert(object);
 		assert invariant() : "Illegal state in Engine.insert(Object)";
 	}

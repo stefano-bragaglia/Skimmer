@@ -1,12 +1,31 @@
 
+import bragaglia.core.skimmer.*;
+
 declare Done
 end
 
-rule "Print something"
+rule "Print Units 1"
+when
+	$i: Unit()
+then
+	System.out.println($i);
+end
+
+rule "Print Units 2"
+when
+	$i: Object()
+then
+	if ($i.getClass().getName().equals("Unit"))
+		System.out.println($i);
+end
+
+rule "Print Objects Types"
 when
 	not Done()
-	$o: Object()
+	$i: Object()
 then
-	System.out.println($o);
+	System.out.println("> " + $i.getClass().getName());
 	insert(new Done());
 end
+
+

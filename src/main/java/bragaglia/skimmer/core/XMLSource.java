@@ -205,7 +205,7 @@ public class XMLSource {
 				}
 			}
 		}
-		if (!compiler.contains(name))
+		if (null == compiler.get(name))
 			compiler.compile(name, values);
 		Object result = compiler.create(name, values);
 		engine.insert(result);

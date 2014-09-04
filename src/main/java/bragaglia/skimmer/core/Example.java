@@ -24,6 +24,8 @@ import org.drools.builder.ResourceType;
 import org.drools.io.ResourceFactory;
 import org.drools.runtime.StatefulKnowledgeSession;
 
+import com.sun.tools.doclets.internal.toolkit.Content;
+
 /**
  * @author stefano
  *
@@ -35,8 +37,11 @@ public class Example {
 	 */
 	public static void main(String[] args) {
 		// Setting the strings that we are going to use...
-		String name = "Person";
-		String content = "public class " + name + " {\n";
+		String packageName = "bragaglia.skimmer.data";
+		String className = "Person";
+		String name = packageName + "." + className;
+		String content = "package " + packageName + ";\n"; 
+				content += "public class " + className + " {\n";
 		content += "    private String name;\n";
 		content += "    public Person() {\n";
 		content += "    }\n";
@@ -55,7 +60,10 @@ public class Example {
 		content += "    }\n";
 		content += "}\n";
 		String value = "HAL";
-		String rules = "rule \"Alive\"\n";
+		String rules = "package " + packageName + ";\n";
+		rules += "import " + className + ";\n";
+		rules += "\n";
+		rules+= "rule \"Alive\"\n";
 		rules += "when\n";
 		rules += "then\n";
 		rules += "    System.out.println(\"I'm alive!\");\n";
@@ -65,7 +73,14 @@ public class Example {
 		rules += "when\n";
 		rules += "    $o: Object()\n";
 		rules += "then\n";
-		rules += "    System.out.println(\"DRL> \" + $o.toString());\n";
+		rules += "    System.out.println(\"OBJ> \" + $o.toString());\n";
+		rules += "end\n";
+		rules += "\n";
+		rules += "rule \"Person\"\n";
+		rules += "when\n";
+		rules += "    $p: Person()\n";
+		rules += "then\n";
+		rules += "    System.out.println(\"Person> \" + $p.toString());\n";
 		rules += "end\n";
 
 		// Compiling the given class in memory

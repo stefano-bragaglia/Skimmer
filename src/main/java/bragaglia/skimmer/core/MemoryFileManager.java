@@ -28,15 +28,15 @@ public class MemoryFileManager extends ForwardingJavaFileManager<StandardJavaFil
 
 		@Override
 		protected Class<?> findClass(String name) throws ClassNotFoundException {
-			Class<?> result = classes.get(name);
-			if (null == result) {
-				MemoryJavaClassObject object = objects.get(name);
-				if (null == object)
-					throw new ClassNotFoundException("Class '" + name + "' not found in this ClassLoader.");
+			MemoryJavaClassObject object = objects.get(name);
+			if (null != object) {
 				byte[] b = object.getBytes();
 				classes.put(name, super.defineClass(name, b, 0, b.length));
 				objects.remove(name);
 			}
+			Class<?> result = classes.get(name);
+			if (null == result)
+				throw new ClassNotFoundException("Class '" + name + "' not found in this ClassLoader.");
 			return result;
 		}
 	};

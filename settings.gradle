@@ -1,0 +1,2 @@
+rootProject.name = 'skimmer'
+mainClass.name = 'bragaglia.skimmer.core.Application'

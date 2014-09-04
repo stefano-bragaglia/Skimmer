@@ -1,17 +1,29 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
 
+group = 'bragaglia'
 version = '1.0'
+
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+        attributes 'Implementation-Title': rootProject.name, 'Implementation-Version': version
+        mainAttributes 'Main-Class': mainClass.name
     }
+    from { 
+        configurations.compile.collect { 
+    		it.isDirectory() ? it : zipTree(it) 
+    	} 
+    }
+    archiveName = baseName + '.' + extension
+    destinationDir = project.file('/usr/local/' + rootProject.name + '-' + version + '/')
 }
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {

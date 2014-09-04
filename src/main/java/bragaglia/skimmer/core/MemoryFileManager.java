@@ -5,6 +5,8 @@ package bragaglia.skimmer.core;
 
 import java.io.IOException;
 import java.security.SecureClassLoader;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
@@ -18,10 +20,13 @@ import javax.tools.StandardJavaFileManager;
  */
 public class MemoryFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
 
-	private MemoryJavaClassObject object;
+	// private MemoryJavaClassObject object;
+
+	private Map<String, MemoryJavaClassObject> objects;
 
 	public MemoryFileManager(StandardJavaFileManager manager) {
 		super(manager);
+		this.objects = new HashMap<>();
 	}
 
 	@Override
@@ -29,16 +34,20 @@ public class MemoryFileManager extends ForwardingJavaFileManager<StandardJavaFil
 		return new SecureClassLoader() {
 			@Override
 			protected Class<?> findClass(String name) throws ClassNotFoundException {
+				MemoryJavaClassObject object = objects.get(name);
+				if (null == object)
+					throw new ClassNotFoundException("Class '" + name + "' not found.");
 				byte[] b = object.getBytes();
-				return super.defineClass(name, object.getBytes(), 0, b.length);
+				return super.defineClass(name, b, 0, b.length);
 			}
 		};
 	}
 
 	@Override
 	public JavaFileObject getJavaFileForOutput(Location location, String name, Kind kind, FileObject sibling) throws IOException {
-		object = new MemoryJavaClassObject(name, kind);
+		MemoryJavaClassObject object = new MemoryJavaClassObject(name, kind);
+		objects.put(name, object);
 		return object;
 	}
-	
+
 }

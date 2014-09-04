@@ -34,8 +34,7 @@ public class Example {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		// Setting the strings that we are going to use...
 		String name = "Person";
 		String content = "public class " + name + " {\n";
 		content += "    private String name;\n";
@@ -59,31 +58,34 @@ public class Example {
 		String rules = "rule \"Alive\"\n";
 		rules += "when\n";
 		rules += "then\n";
-		rules += "    System.out.println(\"I'm alive!\")\n";
+		rules += "    System.out.println(\"I'm alive!\");\n";
 		rules += "end\n";
 		rules += "\n";
 		rules += "rule \"Print\"\n";
 		rules += "when\n";
 		rules += "    $o: Object()\n";
 		rules += "then\n";
-		rules += "    System.out.println(\"DRL> \" + $o.toString())\n";
+		rules += "    System.out.println(\"DRL> \" + $o.toString());\n";
 		rules += "end\n";
 
+		// Compiling the given class in memory
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		JavaFileManager manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
 		ClassLoader classLoader = manager.getClassLoader(null);
-
 		List<JavaFileObject> files = new ArrayList<JavaFileObject>();
 		files.add(new MemoryJavaFileObject(name, content));
 		compiler.getTask(null, manager, null, null, null, files).call();
 
 		try {
+			// Instantiate and set the new class
 			Class<?> person = classLoader.loadClass(name);
 			Method method = person.getMethod("setName", String.class);
 			Object instance = person.newInstance();
 			method.invoke(instance, value);
 			System.out.println(instance);
+			System.out.println("We get a salutation, so Person is now a compiled class in memory loaded by the given ClassLoader.");
 
+			// Use the same instance in Drools (by means of the shared ClassLoader)
 			KnowledgeBuilderConfiguration config1 = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, classLoader);
 			KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(config1);
 			builder.add(ResourceFactory.newByteArrayResource(rules.getBytes()), ResourceType.DRL);

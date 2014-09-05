@@ -24,8 +24,6 @@ import org.drools.builder.ResourceType;
 import org.drools.io.ResourceFactory;
 import org.drools.runtime.StatefulKnowledgeSession;
 
-import com.sun.tools.doclets.internal.toolkit.Content;
-
 /**
  * @author stefano
  *
@@ -40,8 +38,8 @@ public class Example {
 		String packageName = "bragaglia.skimmer.data";
 		String className = "Person";
 		String name = packageName + "." + className;
-		String content = "package " + packageName + ";\n"; 
-				content += "public class " + className + " {\n";
+		String content = "package " + packageName + ";\n";
+		content += "public class " + className + " {\n";
 		content += "    private String name;\n";
 		content += "    public Person() {\n";
 		content += "    }\n";
@@ -60,10 +58,10 @@ public class Example {
 		content += "    }\n";
 		content += "}\n";
 		String value = "HAL";
-		String rules = "package " + packageName + ";\n";
-		rules += "import " + className + ";\n";
+		String rules = "package org.drools.test;\n";
+		rules += "import " + packageName + ".*;\n";
 		rules += "\n";
-		rules+= "rule \"Alive\"\n";
+		rules += "rule \"Alive\"\n";
 		rules += "when\n";
 		rules += "then\n";
 		rules += "    System.out.println(\"I'm alive!\");\n";
@@ -76,11 +74,19 @@ public class Example {
 		rules += "    System.out.println(\"OBJ> \" + $o.toString());\n";
 		rules += "end\n";
 		rules += "\n";
-		rules += "rule \"Person\"\n";
+		rules += "rule \"Person1\"\n";
 		rules += "when\n";
-		rules += "    $p: Person()\n";
+		rules += "    $p: bragaglia.skimmer.data.Person()\n";
 		rules += "then\n";
 		rules += "    System.out.println(\"Person> \" + $p.toString());\n";
+		rules += "end\n";
+		rules += "\n";
+		rules += "rule \"Person2\"\n";
+		rules += "when\n";
+		rules += "    $p: Object()\n";
+		rules += "then\n";
+		rules += "    if ($p.getClass().getSimpleName().equals(\"Person\"))\n";
+		rules += "        System.out.println(\"Person> \" + $p.toString());\n";
 		rules += "end\n";
 
 		// Compiling the given class in memory
@@ -94,24 +100,35 @@ public class Example {
 		try {
 			// Instantiate and set the new class
 			Class<?> person = classLoader.loadClass(name);
+			System.out.println("We are going to work with '" + person.getName() + "'...");
 			Method method = person.getMethod("setName", String.class);
 			Object instance = person.newInstance();
 			method.invoke(instance, value);
 			System.out.println(instance);
 			System.out.println("We get a salutation, so Person is now a compiled class in memory loaded by the given ClassLoader.");
 
-			// Use the same instance in Drools (by means of the shared ClassLoader)
-			KnowledgeBuilderConfiguration config1 = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, classLoader);
-			KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(config1);
+			// Use the same instance in Drools (by means of the shared
+			// ClassLoader)
+//			KnowledgeBuilderConfiguration config1 = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, classLoader);
+//			KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(config1);
+//			builder.add(ResourceFactory.newByteArrayResource(rules.getBytes()), ResourceType.DRL);
+//			if (builder.hasErrors()) {
+//				for (KnowledgeBuilderError error : builder.getErrors())
+//					System.out.println(error.toString());
+//				System.exit(-1);
+//			}
+			KnowledgeBaseConfiguration config2 = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, classLoader);
+			KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(config2);
+//			base.addKnowledgePackages(builder.getKnowledgePackages());
+			
+			KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(base);
 			builder.add(ResourceFactory.newByteArrayResource(rules.getBytes()), ResourceType.DRL);
 			if (builder.hasErrors()) {
 				for (KnowledgeBuilderError error : builder.getErrors())
 					System.out.println(error.toString());
 				System.exit(-1);
 			}
-			KnowledgeBaseConfiguration config2 = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, classLoader);
-			KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(config2);
-			base.addKnowledgePackages(builder.getKnowledgePackages());
+						
 			StatefulKnowledgeSession session = base.newStatefulKnowledgeSession();
 			session.insert(instance);
 			session.fireAllRules();

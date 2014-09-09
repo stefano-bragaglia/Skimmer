@@ -27,10 +27,8 @@ public class MemoryCompiler {
 
 	private static JavaFileManager manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
 
-	private static ClassLoader loader = manager.getClassLoader(null);
-
 	public static ClassLoader getClassLoader() {
-		return loader;
+		return manager.getClassLoader(null);
 	}
 
 	public static String toClassName(String name) {
@@ -45,20 +43,18 @@ public class MemoryCompiler {
 		return name.substring(0, 1).toLowerCase() + name.substring(1);
 	}
 
-	// private Map<String, Class<?>> classes;
-
 	private Map<String, Map<String, Method>> methods;
 
 	private List<String> options;
 
 	public MemoryCompiler() {
-		// this.classes = new HashMap<>();
 		this.methods = new HashMap<>();
 		this.options = new ArrayList<String>(Arrays.asList("-classpath", System.getProperty("java.class.path")));
 		assert invariant() : "Illegal state in MemoryCompiler()";
 	}
 
 	private String assemble(String name, Map<String, Object> fields) {
+		// TODO Add package
 		if (null == name || (name = name.trim()).isEmpty())
 			throw new IllegalArgumentException("Illegal 'name' argument in MemoryCompiler.assemble(String, Map<String, Object>): " + name);
 		if (null == fields)
@@ -97,7 +93,7 @@ public class MemoryCompiler {
 			List<JavaFileObject> files = new ArrayList<JavaFileObject>();
 			files.add(new MemoryJavaFileObject(name, content));
 			compiler.getTask(null, manager, null, options, null, files).call();
-			result = loader.loadClass(name);
+			result = getClassLoader().loadClass(name);
 		} catch (ClassNotFoundException e) {
 			result = null;
 		}
@@ -112,8 +108,7 @@ public class MemoryCompiler {
 			throw new IllegalArgumentException("Illegal 'fields' argument in MemoryCompiler.create(String, Map<String, Object>): " + fields);
 		Object result;
 		try {
-			Class<?> theClass = loader.loadClass(name);
-			result = theClass.newInstance();
+			Class<?> theClass = getClassLoader().loadClass(name);
 			Map<String, Method> setters = methods.get(name);
 			if (null == setters) {
 				setters = new HashMap<>();
@@ -126,6 +121,7 @@ public class MemoryCompiler {
 					}
 				methods.put(name, setters);
 			}
+			result = theClass.newInstance();
 			for (String field : fields.keySet()) {
 				Method setter = setters.get(field);
 				if (null != setter) {
@@ -160,7 +156,7 @@ public class MemoryCompiler {
 			throw new IllegalArgumentException("Illegal 'name' argument in MemoryCompiler.get(String): " + name);
 		Class<?> result;
 		try {
-			result = loader.loadClass(name);
+			result = getClassLoader().loadClass(name);
 		} catch (ClassNotFoundException e) {
 			result = null;
 		}

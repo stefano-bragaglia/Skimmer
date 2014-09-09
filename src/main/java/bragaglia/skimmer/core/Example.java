@@ -73,23 +73,31 @@ public class Example {
 		rules += "when\n";
 		rules += "    $o: Object()\n";
 		rules += "then\n";
-		rules += "    System.out.println(\"OBJ> \" + $o.toString());\n";
+		rules += "    System.out.println(\"Object> \" + $o.toString());\n";
 		rules += "end\n";
 		rules += "\n";
 		rules += "rule \"Person1\"\n";
 		rules += "when\n";
-		rules += "    $p: bragaglia.skimmer.data.Person()\n";
+		rules += "    $p: Object()\n";
 		rules += "then\n";
-		rules += "    System.out.println(\"Person> \" + $p.toString());\n";
+		rules += "    if ($p.getClass().getSimpleName().equals(\"Person\"))\n";
+		rules += "        System.out.println(\"Object/Person> \" + $p.toString());\n";
 		rules += "end\n";
 		rules += "\n";
 		rules += "rule \"Person2\"\n";
 		rules += "when\n";
-		rules += "    $p: Object()\n";
+		rules += "    $p: Person()\n";
 		rules += "then\n";
-		rules += "    if ($p.getClass().getSimpleName().equals(\"Person\"))\n";
-		rules += "        System.out.println(\"Person> \" + $p.toString());\n";
+		rules += "    System.out.println(\"Person> \" + $p.toString());\n";
 		rules += "end\n";
+		rules += "\n";
+		rules += "rule \"Person3\"\n";
+		rules += "when\n";
+		rules += "    $p: bragaglia.skimmer.data.Person()\n";
+		rules += "then\n";
+		rules += "    System.out.println(\"bragaglia.skimmer.data.Person> \" + $p.toString());\n";
+		rules += "end\n";
+		rules += "\n";
 
 		// Compiling the given class in memory
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -108,7 +116,7 @@ public class Example {
 			Object theInstance = theClass.newInstance();
 			theMethod.invoke(theInstance, value);
 			System.out.println(theInstance);
-			System.out.println("We get a salutation, so Person is now a compiled class in memory loaded by the given ClassLoader.");
+			System.out.println("We get a proper toString(), so Person is now a class compiled in memory, augmented by Lombok and loaded by the given ClassLoader.");
 
 			KnowledgeBaseConfiguration config = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, theClassLoader);
 			KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(config);

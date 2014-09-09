@@ -32,7 +32,7 @@ public class XMLSource {
 
 	private static Boolean asBoolean(String value) {
 		if (null == value || (value = value.trim()).isEmpty())
-			throw new IllegalArgumentException("Illegal 's' argument in XMLSource.asBoolean(String): " + value);
+			throw new IllegalArgumentException("Illegal 'value' argument in XMLSource.asBoolean(String): " + value);
 		if (value.equalsIgnoreCase("true"))
 			return true;
 		if (value.equalsIgnoreCase("false"))
@@ -42,7 +42,7 @@ public class XMLSource {
 
 	private static Double asDouble(String value) {
 		if (null == value || (value = value.trim()).isEmpty())
-			throw new IllegalArgumentException("Illegal 's' argument in XMLSource.asDouble(String): " + value);
+			throw new IllegalArgumentException("Illegal 'value' argument in XMLSource.asDouble(String): " + value);
 		Double result;
 		try {
 			result = Double.parseDouble(value);
@@ -54,7 +54,7 @@ public class XMLSource {
 
 	private static Long asLong(String value) {
 		if (null == value || (value = value.trim()).isEmpty())
-			throw new IllegalArgumentException("Illegal 's' argument in XMLSource.asLong(String): " + value);
+			throw new IllegalArgumentException("Illegal 'value' argument in XMLSource.asLong(String): " + value);
 		Long result;
 		try {
 			result = Long.parseLong(value);

@@ -23,12 +23,48 @@ import javax.tools.ToolProvider;
  */
 public class MemoryCompiler {
 
-	private static JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+	public static String createLombokContent(String packageName, String className, Map<String, Object> fields) {
+		if (null == packageName)
+			throw new IllegalArgumentException("Illegal 'packageName' argument in MemoryCompiler.createLombokContent(String, String, Map<String, Object>): "
+					+ packageName);
+		packageName = packageName.trim();
+		if (null == className || (className = className.trim()).isEmpty())
+			throw new IllegalArgumentException("Illegal 'className' argument in MemoryCompiler.createLombokContent(String, String, Map<String, Object>): "
+					+ className);
+		if (null == fields)
+			throw new IllegalArgumentException("Illegal 'fields' argument in MemoryCompiler.createLombokContent(String, String, Map<String, Object>): "
+					+ fields);
+		String result = "";
+		if (!packageName.isEmpty())
+			result += "package " + packageName + ";\n";
+		result += "import lombok.Data;\n";
+		for (Object type : fields.values()) {
+			String path = type.getClass().getName();
+			if (path.toLowerCase().startsWith("listof"))
+				path = ArrayList.class.getName();
+			if (path.contains(".") && !path.substring(0, path.lastIndexOf(".")).equals(packageName) && !result.contains(path))
+				result += "import " + path + ";\n";
+		}
+		result += "@Data\n";
+		result += "public class " + className + " {\n";
+		for (String field : fields.keySet()) {
+			// TODO arrays?
+			String type = fields.get(field).getClass().getSimpleName();
+			if (type.toLowerCase().startsWith("listof"))
+				type = ArrayList.class.getSimpleName();
+			result += "    private " + type + " " + field + ";\n";
+		}
+		result += "}\n";
+		return result;
+	}
 
-	private static JavaFileManager manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
-
-	public static ClassLoader getClassLoader() {
-		return manager.getClassLoader(null);
+	public static String createPath(String packageName, String className) {
+		if (null == packageName)
+			throw new IllegalArgumentException("Illegal 'packageName' argument in MemoryCompiler.createPath(String, String): " + packageName);
+		packageName = packageName.trim();
+		if (null == className || (className = className.trim()).isEmpty())
+			throw new IllegalArgumentException("Illegal 'className' argument in MemoryCompiler.createPath(String, String): " + className);
+		return packageName.isEmpty() ? className : packageName + "." + className;
 	}
 
 	public static String toClassName(String name) {
@@ -43,99 +79,89 @@ public class MemoryCompiler {
 		return name.substring(0, 1).toLowerCase() + name.substring(1);
 	}
 
-	private Map<String, Map<String, Method>> methods;
+	private JavaCompiler compiler;
+
+	private JavaFileManager manager;
+
+	private Map<Class<?>, Map<String, Method>> methods;
 
 	private List<String> options;
 
 	public MemoryCompiler() {
+		this.compiler = ToolProvider.getSystemJavaCompiler();
+		this.manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
 		this.methods = new HashMap<>();
 		this.options = new ArrayList<String>(Arrays.asList("-classpath", System.getProperty("java.class.path")));
 		assert invariant() : "Illegal state in MemoryCompiler()";
 	}
 
-	private String assemble(String name, Map<String, Object> fields) {
-		// TODO Add package
-		if (null == name || (name = name.trim()).isEmpty())
-			throw new IllegalArgumentException("Illegal 'name' argument in MemoryCompiler.assemble(String, Map<String, Object>): " + name);
+	public Class<?> compile(String packageName, String className, Map<String, Object> fields) {
+		if (null == packageName)
+			throw new IllegalArgumentException("Illegal 'packageName' argument in MemoryCompiler.compile(String, String, Map<String, Object>): " + packageName);
+		packageName = packageName.trim();
+		if (null == className || (className = className.trim()).isEmpty())
+			throw new IllegalArgumentException("Illegal 'className' argument in MemoryCompiler.compile(String, String, Map<String, Object>): " + className);
 		if (null == fields)
-			throw new IllegalArgumentException("Illegal 'fields' argument in MemoryCompiler.assemble(String, Map<String, Object>): " + fields);
-
-		String result = "import lombok.Data;\n";
-		for (Object type : fields.values()) {
-			String path = type.getClass().getName();
-			if (path.toLowerCase().startsWith("listof"))
-				path = ArrayList.class.getName();
-			if (path.contains(".") && !result.contains(path))
-				result += "import " + path + ";\n";
-		}
-		result += "public @Data class " + name + " {\n";
-		for (String field : fields.keySet()) {
-			// TODO arrays?
-			String type = fields.get(field).getClass().getSimpleName();
-			if (type.toLowerCase().startsWith("listof"))
-				type = ArrayList.class.getSimpleName();
-			result += "    private " + type + " " + field + ";\n";
-		}
-		result += "}\n";
-
-		return result;
-	}
-
-	public Class<?> compile(String name, Map<String, Object> fields) {
-		if (null == name || (name = toClassName(name.trim())).isEmpty())
-			throw new IllegalArgumentException("Illegal 'name' argument in MemoryCompiler.compile(String, Map<String, Object>): " + name);
-		if (null == fields)
-			throw new IllegalArgumentException("Illegal 'fields' argument in MemoryCompiler.compile(String, Map<String, Object>): " + fields);
+			throw new IllegalArgumentException("Illegal 'fields' argument in MemoryCompiler.compile(String, String, Map<String, Object>): " + fields);
+		List<JavaFileObject> files = new ArrayList<JavaFileObject>();
+		String path = createPath(packageName, className);
+		files.add(new MemoryJavaFileObject(path, createLombokContent(packageName, className, fields)));
+		compiler.getTask(null, manager, null, options, null, files).call();
 		Class<?> result;
 		try {
-			String content = assemble(name, fields);
-
-			List<JavaFileObject> files = new ArrayList<JavaFileObject>();
-			files.add(new MemoryJavaFileObject(name, content));
-			compiler.getTask(null, manager, null, options, null, files).call();
-			result = getClassLoader().loadClass(name);
+			result = manager.getClassLoader(null).loadClass(path);
 		} catch (ClassNotFoundException e) {
 			result = null;
 		}
-		assert invariant() : "Illegal state in MemoryCompiler.compile(String, Map<String, Object>)";
+		assert invariant() : "Illegal state in MemoryCompiler.compile(String, String, Map<String, Object>)";
 		return result;
 	}
 
-	public Object create(String name, Map<String, Object> fields) {
-		if (null == name || (name = toClassName(name.trim())).isEmpty())
-			throw new IllegalArgumentException("Illegal 'name' argument in MemoryCompiler.create(String, Map<String, Object>): " + name);
+	public Object newInstance(String packageName, String className, Map<String, Object> fields) {
+		if (null == packageName)
+			throw new IllegalArgumentException("Illegal 'packageName' argument in MemoryCompiler.newInstance(String, String, Map<String, Object>): "
+					+ packageName);
+		packageName = packageName.trim();
+		if (null == className || (className = className.trim()).isEmpty())
+			throw new IllegalArgumentException("Illegal 'className' argument in MemoryCompiler.newInstance(String, String, Map<String, Object>): " + className);
 		if (null == fields)
-			throw new IllegalArgumentException("Illegal 'fields' argument in MemoryCompiler.create(String, Map<String, Object>): " + fields);
+			throw new IllegalArgumentException("Illegal 'fields' argument in MemoryCompiler.newInstance(String, String, Map<String, Object>): " + fields);
+		String path = createPath(packageName, className);
+
 		Object result;
 		try {
-			Class<?> theClass = getClassLoader().loadClass(name);
-			Map<String, Method> setters = methods.get(name);
+			Class<?> theClass = classLoader().loadClass(path);
+			if (null == theClass)
+				theClass = compile(packageName, className, fields);
+			Map<String, Method> setters = methods.get(theClass);
 			if (null == setters) {
 				setters = new HashMap<>();
 				for (String field : fields.keySet())
 					try {
+						// TODO changes in ArrayList may generate errors here 
 						Method method = theClass.getMethod("set" + toClassName(field), fields.get(field).getClass());
 						setters.put(field, method);
 					} catch (NoSuchMethodException | SecurityException e) {
 						// Couldn't find such a method (shouldn't happen)
 					}
-				methods.put(name, setters);
+				methods.put(theClass, setters);
 			}
 			result = theClass.newInstance();
-			for (String field : fields.keySet()) {
-				Method setter = setters.get(field);
-				if (null != setter) {
-					try {
-						setter.invoke(result, fields.get(field));
-					} catch (IllegalArgumentException | InvocationTargetException e) {
-						// Couldn't update the instance (shouldn't happen)
-					}
+			if (null != result) {
+				for (String field : fields.keySet()) {
+					Method setter = setters.get(field);
+					if (null != setter)
+						try {
+							setter.invoke(result, fields.get(field));
+						} catch (IllegalArgumentException | InvocationTargetException e) {
+							// Couldn't update the instance (shouldn't happen)
+						}
 				}
 			}
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			result = null;
 		}
-		assert invariant() : "Illegal state in MemoryCompiler.create(String, Map<String, Object>)";
+		assert invariant() : "Illegal state in MemoryCompiler.newInstance(String, String, Map<String, Object>)";
 		return result;
 	}
 
@@ -151,16 +177,9 @@ public class MemoryCompiler {
 		System.gc();
 	}
 
-	public Class<?> get(String name) {
-		if (null == name || (name = toClassName(name.trim())).isEmpty())
-			throw new IllegalArgumentException("Illegal 'name' argument in MemoryCompiler.get(String): " + name);
-		Class<?> result;
-		try {
-			result = getClassLoader().loadClass(name);
-		} catch (ClassNotFoundException e) {
-			result = null;
-		}
-		assert invariant() : "Illegal state in MemoryCompiler.get(String)";
+	public ClassLoader classLoader() {
+		ClassLoader result = manager.getClassLoader(null);
+		assert invariant() : "Illegal state in MemoryCompiler.classLoader()";
 		return result;
 	}
 
@@ -171,15 +190,15 @@ public class MemoryCompiler {
 	 *         <code>false</code> otherwise
 	 */
 	private boolean invariant() {
-		return (null != methods && null != options);
+		return (null != compiler && null != manager && null != methods && null != options);
 	}
 
-	public void setOptions(Collection<? extends String> options) {
+	public void setOption(Collection<String> options) {
 		if (null == options)
-			throw new IllegalArgumentException("Illegal 'options' argument in MemoryCompiler.setOptions(Collection<String>): " + options);
+			throw new IllegalArgumentException("Illegal 'options' argument in MemoryCompiler.setOption(Collection<String>): " + options);
 		this.options.clear();
 		this.options.addAll(options);
-		assert invariant() : "Illegal state in MemoryCompiler.setOptions(Collection<? extends String>)";
+		assert invariant() : "Illegal state in MemoryCompiler.setOption(Collection<String>)";
 	}
 
 }

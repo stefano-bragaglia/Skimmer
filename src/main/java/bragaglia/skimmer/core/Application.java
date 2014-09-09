@@ -60,15 +60,13 @@ public class Application {
 			else if (version)
 				printVersion();
 			else {
-				XMLSource source;
-				Engine engine = new Engine(MemoryCompiler.getClassLoader());
-				for (String xml : xmls) {
-					source = new XMLSource(xml);
-					source.ignore(ignores);
-					source.execute(engine);
-				}
+				MemoryCompiler compiler = new MemoryCompiler();
+				Engine engine = new Engine(compiler);
+				XMLReader reader = new XMLReader(engine);
+				for (String xml : xmls) 
+					reader.load(xml, ignores);
 				if (!rules.isEmpty())
-					engine.inject(rules);
+					engine.load(rules);
 				System.err.println("Done.");
 			}
 		}

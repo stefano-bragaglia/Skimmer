@@ -1,5 +1,5 @@
 
-import bragaglia.core.skimmer.*;
+import bragaglia.skimmer.data.*;
 
 declare Done
 end

@@ -6,6 +6,7 @@ package bragaglia.skimmer.core;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.tools.JavaCompiler;
@@ -17,7 +18,6 @@ import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseConfiguration;
 import org.drools.KnowledgeBaseFactory;
 import org.drools.builder.KnowledgeBuilder;
-import org.drools.builder.KnowledgeBuilderConfiguration;
 import org.drools.builder.KnowledgeBuilderError;
 import org.drools.builder.KnowledgeBuilderFactory;
 import org.drools.builder.ResourceType;
@@ -39,23 +39,24 @@ public class Example {
 		String className = "Person";
 		String name = packageName + "." + className;
 		String content = "package " + packageName + ";\n";
+		content += "import lombok.Data;\n";
 		content += "public class " + className + " {\n";
 		content += "    private String name;\n";
-		content += "    public Person() {\n";
-		content += "    }\n";
-		content += "    public Person(String name) {\n";
-		content += "        this.name = name;\n";
-		content += "    }\n";
-		content += "    public String getName() {\n";
-		content += "        return name;\n";
-		content += "    }\n";
-		content += "    public void setName(String name) {\n";
-		content += "        this.name = name;\n";
-		content += "    }\n";
-		content += "    @Override\n";
-		content += "    public String toString() {\n";
-		content += "        return \"Hello, \" + name + \"!\";\n";
-		content += "    }\n";
+		// content += "    public Person() {\n";
+		// content += "    }\n";
+		// content += "    public Person(String name) {\n";
+		// content += "        this.name = name;\n";
+		// content += "    }\n";
+		// content += "    public String getName() {\n";
+		// content += "        return name;\n";
+		// content += "    }\n";
+		// content += "    public void setName(String name) {\n";
+		// content += "        this.name = name;\n";
+		// content += "    }\n";
+		// content += "    @Override\n";
+		// content += "    public String toString() {\n";
+		// content += "        return \"Hello, \" + name + \"!\";\n";
+		// content += "    }\n";
 		content += "}\n";
 		String value = "HAL";
 		String rules = "package org.drools.test;\n";
@@ -91,11 +92,13 @@ public class Example {
 
 		// Compiling the given class in memory
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		List<String> options = new ArrayList<String>(Arrays.asList("-classpath", System.getProperty("java.class.path")));
+		System.out.println(options.toString());
 		JavaFileManager manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
 		ClassLoader classLoader = manager.getClassLoader(null);
 		List<JavaFileObject> files = new ArrayList<JavaFileObject>();
 		files.add(new MemoryJavaFileObject(name, content));
-		compiler.getTask(null, manager, null, null, null, files).call();
+		compiler.getTask(null, manager, null, options, null, files).call();
 
 		try {
 			// Instantiate and set the new class
@@ -107,20 +110,8 @@ public class Example {
 			System.out.println(instance);
 			System.out.println("We get a salutation, so Person is now a compiled class in memory loaded by the given ClassLoader.");
 
-			// Use the same instance in Drools (by means of the shared
-			// ClassLoader)
-//			KnowledgeBuilderConfiguration config1 = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, classLoader);
-//			KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(config1);
-//			builder.add(ResourceFactory.newByteArrayResource(rules.getBytes()), ResourceType.DRL);
-//			if (builder.hasErrors()) {
-//				for (KnowledgeBuilderError error : builder.getErrors())
-//					System.out.println(error.toString());
-//				System.exit(-1);
-//			}
-			KnowledgeBaseConfiguration config2 = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, classLoader);
-			KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(config2);
-//			base.addKnowledgePackages(builder.getKnowledgePackages());
-			
+			KnowledgeBaseConfiguration config = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, classLoader);
+			KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(config);
 			KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(base);
 			builder.add(ResourceFactory.newByteArrayResource(rules.getBytes()), ResourceType.DRL);
 			if (builder.hasErrors()) {
@@ -128,7 +119,7 @@ public class Example {
 					System.out.println(error.toString());
 				System.exit(-1);
 			}
-						
+
 			StatefulKnowledgeSession session = base.newStatefulKnowledgeSession();
 			session.insert(instance);
 			session.fireAllRules();

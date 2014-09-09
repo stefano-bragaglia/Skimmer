@@ -68,7 +68,7 @@ public class Application {
 					source.execute(engine);
 				}
 				if (!rules.isEmpty())
-					engine.inject(MemoryCompiler.getClassLoader(), rules);
+					engine.inject(rules);
 				System.err.println("Done.");
 			}
 		}

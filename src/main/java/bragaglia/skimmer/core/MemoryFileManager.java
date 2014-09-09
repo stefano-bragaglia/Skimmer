@@ -3,7 +3,9 @@
  */
 package bragaglia.skimmer.core;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.SecureClassLoader;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +15,8 @@ import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
 import javax.tools.StandardJavaFileManager;
+
+import org.drools.core.util.ClassUtils;
 
 /**
  * @author stefano
@@ -24,20 +28,25 @@ public class MemoryFileManager extends ForwardingJavaFileManager<StandardJavaFil
 
 	private SecureClassLoader loader = new SecureClassLoader() {
 
-		private Map<String, Class<?>> classes = new HashMap<>();
-
 		@Override
 		protected Class<?> findClass(String name) throws ClassNotFoundException {
+			// name = ClassUtils.convertResourceToClassName(name);
 			MemoryJavaClassObject object = objects.get(name);
 			if (null != object) {
-				byte[] b = object.getBytes();
-				classes.put(name, super.defineClass(name, b, 0, b.length));
-				objects.remove(name);
+				byte[] bytes = object.getBytes();
+				return defineClass(name, bytes, 0, bytes.length);
 			}
-			Class<?> result = classes.get(name);
-			if (null == result)
-				throw new ClassNotFoundException("Class '" + name + "' not found in this ClassLoader.");
-			return result;
+			return findLoadedClass(name);
+		}
+
+		@Override
+		public InputStream getResourceAsStream(String name) {
+			name = ClassUtils.convertResourceToClassName(name);
+			MemoryJavaClassObject object = objects.get(name);
+			if (null != object)
+				return new ByteArrayInputStream(object.getBytes());
+			else
+				return super.getResourceAsStream(name);
 		}
 	};
 

@@ -27,62 +27,48 @@ public class Engine {
 
 	private Set<String> imports;
 
+	private ClassLoader loader;
+
 	private StatefulKnowledgeSession session;
 
 	public Engine(ClassLoader loader) {
 		if (null == loader)
 			throw new IllegalArgumentException("Illegal 'loader' argument in Engine(ClassLoader): " + loader);
 		this.imports = new HashSet<>();
-		KnowledgeBuilderConfiguration config1 = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, loader);
-		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(config1);
+		this.loader = loader;
+		KnowledgeBaseConfiguration configuration = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, loader);
+		KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(configuration);
+		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(base);
 		builder.add(ResourceFactory.newClassPathResource("Basic.drl"), ResourceType.DRL);
 		if (builder.hasErrors()) {
 			for (KnowledgeBuilderError error : builder.getErrors())
 				System.out.println(error.toString());
-			System.err.println("Unable to start the XMLSource engine...");
 			System.exit(-1);
 		}
-		KnowledgeBaseConfiguration config2 = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, loader);
-		KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(config2);
-		base.addKnowledgePackages(builder.getKnowledgePackages());
 		this.session = base.newStatefulKnowledgeSession();
 		this.session.fireAllRules();
 		assert invariant() : "Illegal state in Engine(ClassLoader)";
 	}
 
-	public void inject(ClassLoader loader, Collection<String> resources) {
-		if (null == loader)
-			throw new IllegalArgumentException("Illegal 'loader' argument in Engine.inject(ClassLoader, Collection<String>): " + loader);
-		if (null == resources)
-			throw new IllegalArgumentException("Illegal 'resources' argument in Engine.inject(ClassLoader, Collection<String>): " + resources);
-		KnowledgeBuilderConfiguration config1 = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, loader);
-		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(config1);
-		builder.add(ResourceFactory.newByteArrayResource(String.join("\n", imports).getBytes()), ResourceType.DRL);
-		for (String resource : resources)
-			builder.add(ResourceFactory.newByteArrayResource(resource.getBytes()), ResourceType.DRL);
-		if (builder.hasErrors()) {
-			for (KnowledgeBuilderError error : builder.getErrors())
-				System.out.println(error.toString());
-			System.err.println("The XMLSource engine has been stopped...");
-			System.exit(-1);
-		}
-		KnowledgeBase base = session.getKnowledgeBase();
-		try {
-			base.removeRule("bragaglia.skimmer.core", "Ready");
-		} catch (IllegalArgumentException e) {
-		}
-		base.addKnowledgePackages(builder.getKnowledgePackages());
-		session.fireAllRules();
-		assert invariant() : "Illegal state in Engine.inject(ClassLoader, String)";
+	private KnowledgeBuilder createBuilder() {
+		KnowledgeBuilderConfiguration configuration = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, loader);
+		KnowledgeBuilder result = KnowledgeBuilderFactory.newKnowledgeBuilder(configuration);
+		assert invariant() : "Illegal state in Engine.createBuilder()";
+		return result;
 	}
 
-	public void inject(ClassLoader loader, String resource) {
-		if (null == loader)
-			throw new IllegalArgumentException("Illegal 'loader' argument in Engine.inject(ClassLoader, String): " + loader);
+	public void inject(Collection<String> resources) {
+		if (null == resources)
+			throw new IllegalArgumentException("Illegal 'resources' argument in Engine.inject(Collection<String>): " + resources);
+		for (String resource : resources)
+			inject(resource);
+		assert invariant() : "Illegal state in Engine.inject(Collection<String>)";
+	}
+
+	public void inject(String resource) {
 		if (null == resource)
-			throw new IllegalArgumentException("Illegal 'resource' argument in Engine.inject(ClassLoader, String): " + resource);
-		KnowledgeBuilderConfiguration configuration = KnowledgeBuilderFactory.newKnowledgeBuilderConfiguration(null, loader);
-		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(configuration);
+			throw new IllegalArgumentException("Illegal 'resources' argument in Engine.inject(String): " + resource);
+		KnowledgeBuilder builder = createBuilder();
 		builder.add(ResourceFactory.newByteArrayResource(String.join("\n", imports).getBytes()), ResourceType.DRL);
 		// TODO remove package?
 		builder.add(ResourceFactory.newByteArrayResource(resource.getBytes()), ResourceType.DRL);
@@ -99,7 +85,7 @@ public class Engine {
 		}
 		base.addKnowledgePackages(builder.getKnowledgePackages());
 		session.fireAllRules();
-		assert invariant() : "Illegal state in Engine.inject(ClassLoader, String)";
+		assert invariant() : "Illegal state in Engine.inject(String)";
 	}
 
 	public void insert(Object object) {
@@ -108,12 +94,6 @@ public class Engine {
 		String type = object.getClass().getName();
 		if (type.toLowerCase().startsWith("listof"))
 			type = ArrayList.class.getName();
-
-		KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder();
-		builder.add(ResourceFactory.newByteArrayResource(("import " + type + ";\n").getBytes()), ResourceType.DRL);
-		KnowledgeBase base = session.getKnowledgeBase();
-		base.addKnowledgePackages(builder.getKnowledgePackages());
-
 		if (type.contains("."))
 			imports.add("import " + type);
 		this.session.insert(object);
@@ -127,7 +107,7 @@ public class Engine {
 	 *         <code>false</code> otherwise
 	 */
 	private boolean invariant() {
-		return (null != imports && null != session);
+		return (null != imports && null != loader && null != session);
 	}
 
 }

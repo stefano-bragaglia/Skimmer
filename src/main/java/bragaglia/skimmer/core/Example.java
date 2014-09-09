@@ -93,7 +93,6 @@ public class Example {
 		// Compiling the given class in memory
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		List<String> options = new ArrayList<String>(Arrays.asList("-classpath", System.getProperty("java.class.path")));
-		System.out.println(options.toString());
 		JavaFileManager manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
 		ClassLoader classLoader = manager.getClassLoader(null);
 		List<JavaFileObject> files = new ArrayList<JavaFileObject>();
@@ -119,7 +118,6 @@ public class Example {
 					System.out.println(error.toString());
 				System.exit(-1);
 			}
-
 			StatefulKnowledgeSession session = base.newStatefulKnowledgeSession();
 			session.insert(instance);
 			session.fireAllRules();

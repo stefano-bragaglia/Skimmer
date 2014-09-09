@@ -40,6 +40,7 @@ public class Example {
 		String name = packageName + "." + className;
 		String content = "package " + packageName + ";\n";
 		content += "import lombok.Data;\n";
+		content += "@Data\n";
 		content += "public class " + className + " {\n";
 		content += "    private String name;\n";
 		// content += "    public Person() {\n";
@@ -92,24 +93,24 @@ public class Example {
 
 		// Compiling the given class in memory
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		List<String> options = new ArrayList<String>(Arrays.asList("-classpath", System.getProperty("java.class.path")));
 		JavaFileManager manager = new MemoryFileManager(compiler.getStandardFileManager(null, null, null));
-		ClassLoader classLoader = manager.getClassLoader(null);
+		List<String> options = new ArrayList<String>(Arrays.asList("-classpath", System.getProperty("java.class.path")));
 		List<JavaFileObject> files = new ArrayList<JavaFileObject>();
 		files.add(new MemoryJavaFileObject(name, content));
 		compiler.getTask(null, manager, null, options, null, files).call();
 
 		try {
 			// Instantiate and set the new class
-			Class<?> person = classLoader.loadClass(name);
-			System.out.println("We are going to work with '" + person.getName() + "'...");
-			Method method = person.getMethod("setName", String.class);
-			Object instance = person.newInstance();
-			method.invoke(instance, value);
-			System.out.println(instance);
+			ClassLoader theClassLoader = manager.getClassLoader(null);
+			Class<?> theClass = theClassLoader.loadClass(name);
+			System.out.println("We are going to work with '" + theClass.getName() + "'...");
+			Method theMethod = theClass.getMethod("setName", String.class);
+			Object theInstance = theClass.newInstance();
+			theMethod.invoke(theInstance, value);
+			System.out.println(theInstance);
 			System.out.println("We get a salutation, so Person is now a compiled class in memory loaded by the given ClassLoader.");
 
-			KnowledgeBaseConfiguration config = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, classLoader);
+			KnowledgeBaseConfiguration config = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, theClassLoader);
 			KnowledgeBase base = KnowledgeBaseFactory.newKnowledgeBase(config);
 			KnowledgeBuilder builder = KnowledgeBuilderFactory.newKnowledgeBuilder(base);
 			builder.add(ResourceFactory.newByteArrayResource(rules.getBytes()), ResourceType.DRL);
@@ -119,7 +120,7 @@ public class Example {
 				System.exit(-1);
 			}
 			StatefulKnowledgeSession session = base.newStatefulKnowledgeSession();
-			session.insert(instance);
+			session.insert(theInstance);
 			session.fireAllRules();
 		} catch (ClassNotFoundException e) {
 			System.out.println("Class not found!");

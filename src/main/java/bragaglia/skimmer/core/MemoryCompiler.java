@@ -128,36 +128,45 @@ public class MemoryCompiler {
 			throw new IllegalArgumentException("Illegal 'fields' argument in MemoryCompiler.newInstance(String, String, Map<String, Object>): " + fields);
 		String path = createPath(packageName, className);
 
-		Object result;
+		Object result = null;
 		try {
 			Class<?> theClass = classLoader().loadClass(path);
 			if (null == theClass)
-				theClass = compile(packageName, className, fields);
-			Map<String, Method> setters = methods.get(theClass);
-			if (null == setters) {
-				setters = new HashMap<>();
-				for (String field : fields.keySet())
-					try {
-						// TODO changes in ArrayList may generate errors here 
-						Method method = theClass.getMethod("set" + toClassName(field), fields.get(field).getClass());
-						setters.put(field, method);
-					} catch (NoSuchMethodException | SecurityException e) {
-						// Couldn't find such a method (shouldn't happen)
-					}
-				methods.put(theClass, setters);
-			}
-			result = theClass.newInstance();
-			if (null != result) {
-				for (String field : fields.keySet()) {
-					Method setter = setters.get(field);
-					if (null != setter)
+				theClass = this.compile(packageName, className, fields);
+			if (null != theClass) {
+				Map<String, Method> setters = methods.get(theClass);
+				if (null == setters) {
+					setters = new HashMap<>();
+					for (String field : fields.keySet())
 						try {
-							setter.invoke(result, fields.get(field));
-						} catch (IllegalArgumentException | InvocationTargetException e) {
-							// Couldn't update the instance (shouldn't happen)
+							// TODO changes in ArrayList may generate errors
+							// here
+							Method method = theClass.getMethod("set" + toClassName(field), fields.get(field).getClass());
+							setters.put(field, method);
+						} catch (NoSuchMethodException | SecurityException | NullPointerException e) {
+							// Couldn't find such a method (shouldn't happen)
 						}
+					methods.put(theClass, setters);
+				}
+				result = theClass.newInstance();
+				if (null != result) {
+					for (String field : fields.keySet()) {
+						Method setter = setters.get(field);
+						if (null != setter)
+							try {
+								setter.invoke(result, fields.get(field));
+							} catch (IllegalArgumentException | InvocationTargetException e) {
+								// Couldn't update the instance (shouldn't
+								// happen)
+							}
+					}
 				}
 			}
+		} catch (NullPointerException e) {
+			System.err.println("package: " + packageName);
+			System.err.println("class:   " + className);
+			System.err.println("fields:  " + fields);
+			result = null;
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			result = null;
 		}

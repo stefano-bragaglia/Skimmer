@@ -71,9 +71,14 @@ public class XMLReader {
 
 	private Engine engine;
 
-	public XMLReader(Engine engine) {
+	private MemoryCompiler compiler;
+
+	public XMLReader(Engine engine, MemoryCompiler compiler) {
 		if (null == engine)
-			throw new IllegalArgumentException("Illegal 'engine' argument in XMLReader(Engine): " + engine);
+			throw new IllegalArgumentException("Illegal 'engine' argument in XMLReader(Engine, MemoryCompiler): " + engine);
+		if (null == compiler)
+			throw new IllegalArgumentException("Illegal 'compiler' argument in XMLReader(Engine, MemoryCompiler): " + compiler);
+		this.compiler = compiler;
 		this.engine = engine;
 		assert invariant() : "Illegal state in XMLReader(Engine)";
 	}
@@ -101,7 +106,7 @@ public class XMLReader {
 			Document document = builder.parse(file);
 			Element root = document.getDocumentElement();
 			root.normalize();
-			visit(root, ignores, engine);
+			visit(root, ignores);
 			engine.flush();
 		} catch (ParserConfigurationException | SAXException | IOException e) {
 			System.err.println(e.toString());
@@ -112,13 +117,11 @@ public class XMLReader {
 		assert invariant() : "Illegal state in XMLReader.load(String, Collection<String>)";
 	}
 
-	private Object visit(Node node, Collection<String> ignores, Engine engine) {
+	private Object visit(Node node, Collection<String> ignores) {
 		if (null == node)
 			throw new IllegalArgumentException("Illegal 'node' argument in Skimmer.visit(Node, Collection<String>, Engine): " + node);
 		if (null == ignores)
 			throw new IllegalArgumentException("Illegal 'ignores' argument in Skimmer.visit(Node, Collection<String>, Engine): " + ignores);
-		if (null == engine)
-			throw new IllegalArgumentException("Illegal 'engine' argument in Skimmer.visit(Node, Collection<String>, Engine): " + engine);
 		String className = node.getNodeName();
 		Map<String, Object> fields = new HashMap<>();
 		NamedNodeMap map = node.getAttributes();
@@ -133,21 +136,24 @@ public class XMLReader {
 			Node child = list.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 				String field = child.getNodeName();
-				if (ignores.contains(field))
+				if (ignores.contains(field)) {
 					// TODO Create a method ad hoc
 					if (listed)
 						value.add(child.getTextContent());
 					else
 						fields.put(field, child.getTextContent());
-				else if (listed)
-					value.add(visit(child, ignores, engine));
-				else
-					fields.put(field, visit(child, ignores, engine));
+				} else {
+					if (listed)
+						value.add(visit(child, ignores));
+					else
+						fields.put(field, visit(child, ignores));
+				}
 			}
 			if (listed)
 				fields.put(className, value);
 		}
-		Object result = engine.insert("bragaglia.skimmer.data", className, fields);
+		Object result = compiler.newInstance("bragaglia.skimmer.data", className, fields);
+		engine.insert(result);
 		assert invariant() : "Illegal state in Skimmer.visit(Node, Collection<String>, Engine)";
 		return result;
 	}

@@ -19,9 +19,9 @@ public class Refactor {
 		// Setting the strings that we are going to use...
 		String packageName = "bragaglia.skimmer.data";
 		String className = "Person";
-		String value = "HAL";
 		Map<String, Object> fields = new HashMap<>();
-		fields.put("name", value);
+		fields.put("name", "HAL");
+		fields.put("age", 2001);
 
 		String rules = "package org.drools.test;\n";
 		rules += "import " + packageName + ".*;\n";

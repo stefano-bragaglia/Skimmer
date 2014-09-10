@@ -62,7 +62,7 @@ public class Application {
 			else {
 				MemoryCompiler compiler = new MemoryCompiler();
 				Engine engine = new Engine(compiler);
-				XMLReader reader = new XMLReader(engine);
+				XMLReader reader = new XMLReader(engine, compiler);
 				for (String xml : xmls) 
 					reader.load(xml, ignores);
 				if (!rules.isEmpty())

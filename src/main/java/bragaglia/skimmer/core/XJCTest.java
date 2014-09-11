@@ -1,8 +1,9 @@
-/**
+ /**
  * 
  */
 package bragaglia.skimmer.core;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +23,6 @@ import com.sun.codemodel.internal.writer.SingleStreamCodeWriter;
 import com.sun.tools.internal.xjc.api.S2JJAXBModel;
 import com.sun.tools.internal.xjc.api.SchemaCompiler;
 import com.sun.tools.internal.xjc.api.XJC;
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 
 /**
  * @author stefano
@@ -55,7 +55,7 @@ public class XJCTest {
 		ByteArrayOutputStream target = new ByteArrayOutputStream();
 		while ((read = source.read(buffer)) > 0)
 			target.write(buffer, 0, read);
-		ByteInputStream inputStream = new ByteInputStream(target.toByteArray(), target.size());
+		ByteArrayInputStream inputStream = new ByteArrayInputStream(target.toByteArray(), 0, target.size());
 		InputSource inputSource = new InputSource(inputStream);
 		
         SchemaCompiler xsdCompiler = XJC.createSchemaCompiler();

@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Ant-Version: Apache Ant 1.9.2
-Created-By: 1.7.0_45-b18 (Oracle Corporation)
-Premain-Class: lombok.core.Agent
-Agent-Class: lombok.core.Agent
-Can-Redefine-Classes: true
-Main-Class: lombok.core.Main
-Lombok-Version: 1.14.4
-

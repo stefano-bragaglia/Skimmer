@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-Implementation-Title: skimmer
-Implementation-Version: 1.0
-Main-Class: bragaglia.skimmer.core.Application
-
